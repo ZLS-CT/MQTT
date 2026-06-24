@@ -1,7 +1,7 @@
 {
     "name": "MQTT",
-    "description": "CT interface for a MQTT client/server.",
+    "description": "Interface for a MQTT client/server.",
     "author": "Zephy (Nvidia2080Ti)",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "entry": "index.js"
 }

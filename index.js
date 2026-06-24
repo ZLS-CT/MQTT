@@ -1,11 +1,3 @@
-const SSLContext = Java.type("javax.net.ssl.SSLContext")
-const TrustManagerFactory = Java.type("javax.net.ssl.TrustManagerFactory")
-const KeyStore = Java.type("java.security.KeyStore")
-const CertificateFactory = Java.type("java.security.cert.CertificateFactory")
-const FileInputStream = Java.type("java.io.FileInputStream")
-const DataOutputStream = Java.type("java.io.DataOutputStream")
-const DataInputStream = Java.type("java.io.DataInputStream")
-const ByteArrayOutputStream = Java.type("java.io.ByteArrayOutputStream")
 const JavaString = Java.type("java.lang.String")
 
 const KEEPALIVE_MS = 30_000
@@ -26,17 +18,17 @@ const PKT_UNSUBACK = 0xB0
 const ChatLog = (...strings) => ChatLib.chat("§6[MQTT] §r" + strings.join(" | "))
 
 const gzipDecompress = (byteArray) => {
-    const input = new java.io.ByteArrayInputStream(byteArray)
-    const gz = new java.util.zip.GZIPInputStream(input)
-    const out = new java.io.ByteArrayOutputStream()
-    const buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 4096)
+    const input = new ByteArrayInputStream(byteArray)
+    const gz = new GZIPInputStream(input)
+    const out = new ByteArrayOutputStream()
+    const buffer = JavaArray.newInstance(Byte.TYPE, 4096)
     let n
     while ((n = gz.read(buffer)) != -1) {
         out.write(buffer, 0, n)
     }
     gz.close()
     out.close()
-    return new java.lang.String(out.toByteArray(), "UTF-8")
+    return new JavaString(out.toByteArray(), "UTF-8")
 }
 
 export class MQTTClient {
@@ -53,7 +45,7 @@ export class MQTTClient {
         this.hostPort = hostPort
         this.hostUsername = hostUsername
         this.hostPassword = hostPassword
-        this.clientID = clientID ?? `ct-client-${java.lang.System.getProperty("user.name")}`
+        this.clientID = clientID ?? `ct-client-${System.getProperty("user.name")}`
         this.certPaths = certPaths
 
         this.socket = null
@@ -335,11 +327,11 @@ export class MQTTClient {
     }
     _handlePublish(remaining) {
         const topicLen = ((this.inStream.readByte() & 0xFF) << 8) | (this.inStream.readByte() & 0xFF)
-        const topicBytes = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, topicLen)
+        const topicBytes = JavaArray.newInstance(Byte.TYPE, topicLen)
         this.inStream.readFully(topicBytes)
 
         const payloadLen = remaining - 2 - topicLen
-        const payloadBytes = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, payloadLen)
+        const payloadBytes = JavaArray.newInstance(Byte.TYPE, payloadLen)
         this.inStream.readFully(payloadBytes)
 
         const topic = new JavaString(topicBytes, "UTF-8")
