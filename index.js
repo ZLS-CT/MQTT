@@ -15,7 +15,7 @@ const PKT_DISCONNECT = 0xE0
 const PKT_UNSUBSCRIBE = 0xA2
 const PKT_UNSUBACK = 0xB0
 
-const ChatLog = (...strings) => ChatLib.chat("§6[MQTT] §r" + strings.join(" | "))
+const ConsoleLog = (...strings) => console.log("§6[MQTT] §r" + strings.join(" | "))
 
 const gzipDecompress = (byteArray) => {
     const input = new ByteArrayInputStream(byteArray)
@@ -79,10 +79,7 @@ export class MQTTClient {
         this._disconnect()
     }
     subscribe(topic, callback = null, compressionType = null) {
-        if (!topic) {
-            ChatLog("Invalid topic")
-            return
-        }
+        if (!topic) return
         this.topicCallbacks[topic] = callback
         if (compressionType) {
             this.compressionTypes[topic] = compressionType
@@ -95,7 +92,7 @@ export class MQTTClient {
         if (this.connected) {
             this._sendUnsubscribe(topic)
             this._waitForUnsuback()
-            ChatLog(`Unsubscribed from: ${topic}`)
+            ConsoleLog(`Unsubscribed from: ${topic}`)
         }
     }
 
@@ -126,7 +123,7 @@ export class MQTTClient {
     _connect() {
         if (!this.running) return
         try {
-            ChatLog(`Connecting to ${this.hostURL}:${this.hostPort}`)
+            ConsoleLog(`Connecting to ${this.hostURL}:${this.hostPort}`)
 
             const factory = this._buildSSLSocketFactory()
             this.socket = factory.createSocket(this.hostURL, this.hostPort)
@@ -143,7 +140,7 @@ export class MQTTClient {
             this._pendingSubscriptions.forEach((topic) => {
                 this._sendSubscribe(topic)
                 this._waitForSuback()
-                ChatLog(`Subscribed to: ${topic}`)
+                ConsoleLog(`Subscribed to: ${topic}`)
             })
             this._pendingSubscriptions = []
 
@@ -151,7 +148,7 @@ export class MQTTClient {
             this._readLoop()
 
         } catch (e) {
-            ChatLog("Connection failed:", e, e.stack)
+            ConsoleLog("Connection failed:", e, e.stack)
             this._scheduleReconnect()
         }
     }
@@ -159,7 +156,7 @@ export class MQTTClient {
         this.connected = false
         this._closeSocket()
         if (!this.running) return
-        ChatLog(`Reconnecting in ${RECONNECT_MS / 1000}s...`)
+        ConsoleLog(`Reconnecting in ${RECONNECT_MS / 1000}s...`)
         new Thread(() => {
             Thread.sleep(RECONNECT_MS)
             this._connect()
@@ -172,7 +169,7 @@ export class MQTTClient {
                 this._sendDisconnect()
             }
         } catch (e) {
-            ChatLog("Disconnect failed:", e, e.stack)
+            ConsoleLog("Disconnect failed:", e, e.stack)
         }
         this._closeSocket()
     }
@@ -182,7 +179,7 @@ export class MQTTClient {
                 this.socket.close()
             }
         } catch (e) {
-            ChatLog("Socket close failed:", e, e.stack)
+            ConsoleLog("Socket close failed:", e, e.stack)
         }
     }
     _readLoop() {
@@ -201,7 +198,7 @@ export class MQTTClient {
             }
         } catch (e) {
             if (this.running) {
-                ChatLog("Read error:", e, e.stack)
+                ConsoleLog("Read error:", e, e.stack)
                 this._scheduleReconnect()
             }
         }
@@ -214,7 +211,7 @@ export class MQTTClient {
                 try {
                     this._sendPingReq()
                 } catch (e) {
-                    ChatLog("Ping failed:", e, e.stack)
+                    ConsoleLog("Ping failed:", e, e.stack)
                     this._scheduleReconnect()
                     break
                 }
@@ -290,7 +287,6 @@ export class MQTTClient {
         const b1 = this.inStream.readByte() & 0xFF // remaining length, always 2
         const b2 = this.inStream.readByte() & 0xFF // session present
         const b3 = this.inStream.readByte() & 0xFF // return code
-        ChatLog(`CONNACK bytes: 0x${b0.toString(16)} 0x${b1.toString(16)} 0x${b2.toString(16)} 0x${b3.toString(16)}`)
         if ((b0 & 0xF0) !== PKT_CONNACK) {
             throw new Error(`Expected CONNACK (0x20), got: 0x${b0.toString(16)}`)
         }
@@ -350,7 +346,7 @@ export class MQTTClient {
             }
             callback(payload)
         } catch (e) {
-            ChatLog("Handler error:", e, e.stack)
+            ConsoleLog("Handler error:", e, e.stack)
         }
     }
     _appendString(buf, str) {
