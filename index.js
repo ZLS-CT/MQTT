@@ -45,7 +45,7 @@ export class MQTTClient {
         this.hostPort = hostPort
         this.hostUsername = hostUsername
         this.hostPassword = hostPassword
-        this.clientID = clientID ?? `ct-client-${System.getProperty("user.name")}`
+        this.clientID = clientID ?? `ct-receiver-${System.getProperty("user.name")}`
         this.certPaths = certPaths
 
         this.socket = null
